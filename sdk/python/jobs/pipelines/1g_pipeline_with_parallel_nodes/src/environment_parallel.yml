@@ -6,11 +6,11 @@ dependencies:
   - pip
   - pip:
       - mlflow
+      - mltable>=1.2.0
       - azureml-dataset-runtime[pandas,fuse]
       - azureml-telemetry
       - pandas
       - pillow
       - azureml-core
-      - scikit-learn~=0.20.0
+      - scikit-learn==0.20.3
       - cloudpickle==1.1.1
-      - tensorflow==2.1.4
