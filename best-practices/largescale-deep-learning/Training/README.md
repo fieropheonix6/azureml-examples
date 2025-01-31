@@ -1,6 +1,5 @@
 ## Large Scale Distributed Training in Azure Machine Learning
 
-[![smoke](https://github.com/Azure/azureml-examples/workflows/smoke/badge.svg)](https://github.com/Azure/azureml-examples/actions/workflows/smoke.yml)
 [![Python code style: black](https://img.shields.io/badge/code%20style-black-00000svg)](https://github.com/psf/black)
 [![license: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
@@ -10,6 +9,7 @@
 	*  [**Estimate Memory Requirements**](#estimate-memory-requirements)
 	*  [**Compute Cluster**](#compute-cluster)
 		*  [**Linear Scaling with Infiniband Enabled SKUs**](#linear-scaling-with-infiniband-enabled-skus)
+        * [**Compute Cluster Issues**](#compute-cluster-issues)
 	*  [**Environment**](#environment)
 	*  [**Data Loading**](#data-loading)
 *  [**Optimizations**](#optimizations)
@@ -28,6 +28,7 @@
 *  [**Examples**](#examples)
 	*  [**BERT Pretrain**](#bert-pretrain)
 	*  [**Bloom Pretrain**](#bloom-pretrain)
+	*  [**ViT Pretrain**](#vit-pretrain)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -97,6 +98,9 @@ This guide will show best practices to allow you to train large models very effi
   > [!NOTE]
   > While InifiBand helps attain linear scaling, there are other reasons/factors that can impact linear scaling and you will see in the document below and solution.. 
   
+  #### <a name='ComputeClusterIssues'></a>**Compute Cluster Issues**
+  Sometimes compute clusters will behave unexpectedly. That might mean loading data slower than expected, low GPU utilization, mismatched logs between nodes, etc. If this is happening there could be a node in a failed state on the cluster that needs to be removed. For more information, see [this page](../Debugging/Compute/README.md).
+
   
 ### <a name='Environment'></a>**Environment**
   The recommended environment for a large scale distributed training job is an Azure Container for PyTorch (ACPT) environment with several built in optimizers and is 	described in more detail [here](../Environment/ACPT.md). This environment is built and ready to use under the 	'Environments' tab in AzureML studio. Some optimizers included in the environment are: 
@@ -313,7 +317,7 @@ For an example that enables these tools, see [here](./Bert-Pretrain/README.md).
   <img src="https://user-images.githubusercontent.com/73311224/225174576-df95695c-fa14-4cf4-ac9e-0bf4ecac20e7.png" alt="Tensorboard" width="400"/>
 
 ## <a name='Resiliency'></a>**Resiliency**
-When training with multiple compute nodes, the likelyhood of hardware faults occuring is increased. Fortunately, AzureML will automatically restart training jobs that fail due to hardware errors. With the length and resource consumption of large scale distributed training jobs however, it is ideal that training is not restarted scratch. With model checkpointing the training process can be saved at periodic checkpoints and if the training fails due to hardware faults, the training can be resumed from before it failed. Nebula Checkpointing is an optimized version of this feature.
+When training with multiple compute nodes, the likelyhood of hardware faults occuring is increased. Fortunately, AzureML will automatically restart training jobs that fail due to hardware errors. With the length and resource consumption of large scale distributed training jobs however, it is ideal that training is not restarted scratch. With model checkpointing the training process can be saved at periodic checkpoints and if the training fails due to hardware faults, the training can be resumed from before it failed. Nebula Checkpointing is an optimized version of this feature. 
 
 ### <a name='Nebulacheckpointing'></a>**Nebula checkpointing**
 
@@ -338,8 +342,10 @@ Nebula Checkpointing improves on standard model checkpointing by saving models 1
   shm_size: 3100m
   ```
 ## <a name='Examples'></a>**Examples**
-- ### **Pretraining a model**
-  Pretraining a language model is a process of training a model on a large corpus of unlabeled text using self-supervision, which means that the model learns to predict some parts of the text from other parts. Pretraining helps the model learn general language knowledge and skills that can be useful for various downstream tasks. Pretraining from scratch means training a model from random initialization without using any existing pretrained models. Pretraining from scratch can be beneficial when you have a large amount of domain-specific data that differs significantly from general text corpora, or when you want to customize your model architecture or hyperparameters. However, pretraining from scratch can also be more costly and time-consuming than finetuning an existing pretrained model.
+- ### **Pretraining models**
+  Pretraining a language model is typically done in the self-supervised learning paradigm by training on a large corpus of unlabeled text. Commonly, the self-supervised task is to predict some parts of the text from other parts (the MLM framework). Pretraining helps the model learn general language knowledge and skills that can be useful for various downstream tasks. Pretraining from scratch means training a model from random initialization without using any existing pretrained models. Pretraining from scratch can be beneficial when you have a large amount of domain-specific data that differs significantly from general text corpora, or when you want to customize your model architecture or hyperparameters. However, pretraining from scratch can also be more costly and time-consuming than finetuning an existing pretrained model.
+
+  Pretraining a vision model can be done in the supervised or the self-supervised learning paradigm. Similar considerations as for language models apply, i.e. pretraining produces good general features and it brings benefits in specialized domains with large amounts of unlabeled data, but it may be costly.
 ### <a name='BERTPretrain'></a>**BERT Pretrain**
   [This example](./Bert-Pretrain/README.md) shows how to run a BERT pretraining job on AzureML.
   The following results were found using 2 ND40rs nodes with 8 V100 GPUs each.
@@ -355,3 +361,5 @@ Nebula Checkpointing improves on standard model checkpointing by saving models 1
   |1|25B|16|	8|	1|	1|	119.42|	4.173	|69.7%|
   |2|20B|8|	8|	1	|1	|117.71	|2.51	|78.5%|
   |3|20B|8|	8|	1	|2|	123.52	|2.63	|80.1%|
+### <a name='ViTPretrain'></a>**ViT Pretrain**
+  [This example](./ViT-Pretrain/README.md) shows how to pretrain a ViT model in AzureML via supervised learning.
